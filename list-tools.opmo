@@ -1,0 +1,69 @@
+(in-package :Opusmodus)
+
+;;; ------------------------------------------------------------
+;;; List Tools Extensions
+;;; Author: Arthur Stammet
+;;; Created: November 2025
+;;; Location: ~/Opusmodus/User Source/Extensions/
+;;; ------------------------------------------------------------
+;;; Overview:
+;;; Utility functions for slicing and reorganizing lists in structured ways.
+;;;   - step-list       → take every N-th element
+;;;   - step-list-loop  → partition into N interleaved sublists
+;;;   - pendulum-list   → partition into N sublists, alternating forward/backward order
+;;;
+;;; Functions:
+;;;   (step-list lst step)
+;;;   (step-list-loop lst step)
+;;;   (pendulum-list lst step)
+;;;
+;;; Usage Examples:
+;;;   (setq my-list '(a b c d e f g h i j))
+;;;
+;;;   ;; Every 2nd element
+;;;   (step-list my-list 2)
+;;;   ;; → (a c e g i)
+;;;
+;;;   ;; Partition into 2 interleaved lists
+;;;   (step-list-loop my-list 2)
+;;;   ;; → ((a c e g i) (b d f h j))
+;;;
+;;;   ;; Partition into 3 lists with pendulum alternation
+;;;   (pendulum-list my-list 3)
+;;;   ;; → ((a d g j) (i f c) (b e h))
+;;; ------------------------------------------------------------
+
+;;; ------------------------------------------------------------
+;;; Cheat-Sheet: List Tools Behaviours
+;;; ------------------------------------------------------------
+;;; Function         | Behaviour                          | Example Input → Output
+;;; -----------------+------------------------------------+-----------------------------------------
+;;; step-list        | Take every STEP-th element         | (step-list '(a b c d e f) 2)
+;;;                  | starting at index 0                | → (a c e)
+;;;
+;;; step-list-loop   | Partition into STEP sublists,      | (step-list-loop '(a b c d e f) 2)
+;;;                  | each starting at offset 0..STEP-1  | → ((a c e) (b d f))
+;;;
+;;; pendulum-list    | Partition into STEP sublists,      | (pendulum-list '(a b c d e f g h) 3)
+;;;                  | alternating forward/backward order | → ((a d g) (h e b) (c f))
+;;; ------------------------------------------------------------
+
+(defun step-list (lst step)
+  "Return every STEP-th element from LST, beginning with index 0."
+  (loop for i from 0 below (length lst) by step
+        collect (nth i lst)))
+
+(defun step-list-loop (lst step)
+  "Return lists of STEP-th elements from LST, starting at offsets 0..(STEP-1)."
+  (loop for offset from 0 below step
+        collect (loop for i from offset below (length lst) by step
+                      collect (nth i lst))))
+
+(defun pendulum-list (lst step)
+  "Return lists of STEP-th elements from LST, alternating forward and backward passes."
+  (loop for offset from 0 below step
+        collect (if (evenp offset)
+                    (loop for i from offset below (length lst) by step
+                          collect (nth i lst))
+                    (reverse (loop for i from offset below (length lst) by step
+                                   collect (nth i lst))))))
